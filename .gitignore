@@ -6,3 +6,7 @@ local.properties
 *.apk
 *.keystore
 *.jks
+demo/audio/
+demo/tact-demo.mp4
+demo/preview-*.png
+demo/render.log

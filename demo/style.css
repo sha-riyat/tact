@@ -1,0 +1,136 @@
+:root {
+  --plate-top: #3a4146; --plate-bottom: #2d3236; --ink: #0d0f10; --well: #15181a;
+  --cap: #262b2e; --cap-lift: #30363a; --paper: #e6e6e2; --paper-lift: #f3f3f0;
+  --amber: #e3a72a; --amber-lift: #efbb48; --glyph: #d9dcde; --muted: #8f989e;
+  --online: #6fd99b; --offline: #ff6b5e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; background: #0b0c0d; overflow: hidden; }
+body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(--glyph); }
+
+#stage {
+  position: absolute; inset: 0; overflow: hidden; perspective: 2400px;
+  background: radial-gradient(ellipse 70% 80% at 72% 45%, #2a3034 0%, #15181a 55%, #0b0c0d 100%);
+}
+#stage::after { /* fine film grain over everything (tile is generated in ui.js) */
+  content: ""; position: absolute; inset: 0; pointer-events: none; background-image: var(--grain); opacity: .5;
+}
+
+/* ---------- copy ---------- */
+#copy { position: absolute; left: 130px; top: 190px; width: 820px; }
+.slide { position: absolute; left: 0; top: 0; width: 100%; opacity: 0; }
+.eyebrow { font-size: 22px; letter-spacing: .28em; color: var(--amber); font-weight: 600; margin-bottom: 26px; }
+.h1 { font-size: 78px; line-height: 1.04; font-weight: 600; letter-spacing: -.02em; color: #f3f4f5; }
+.sub { font-size: 30px; line-height: 1.4; color: var(--muted); margin-top: 28px; max-width: 700px; }
+.word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-right: .26em; }
+.word > span { display: inline-block; will-change: transform; }
+
+#brand { position: absolute; left: 130px; top: 70px; display: flex; align-items: center; gap: 16px; opacity: 0; }
+#brand img, .appicon { width: 44px; height: 44px; }
+#brand b { font-size: 28px; font-weight: 600; letter-spacing: .02em; }
+#bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--amber); width: 0; opacity: .9; }
+
+/* ---------- intro / outro ---------- */
+.center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; }
+.appicon.big { width: 200px; height: 200px; filter: drop-shadow(0 30px 50px rgba(0,0,0,.55)); }
+.title { font-size: 150px; font-weight: 600; letter-spacing: -.03em; color: #f6f6f7; margin-top: 40px; line-height: 1; }
+.tag { font-size: 36px; color: var(--muted); margin-top: 26px; }
+.chips { display: flex; gap: 18px; margin-top: 54px; }
+.chip { padding: 16px 30px; border-radius: 999px; background: #1c2023; border: 1px solid #2c3236; font-size: 26px; color: var(--glyph); }
+
+/* ---------- phone ---------- */
+#phoneWrap { position: absolute; left: 1185px; top: 103px; width: 410px; height: 874px; transform-style: preserve-3d; opacity: 0; }
+#phone {
+  position: absolute; inset: 0; border-radius: 58px; background: #0a0b0c; padding: 10px;
+  box-shadow: 0 0 0 2px #1d2023, 0 60px 120px rgba(0,0,0,.65), 0 20px 40px rgba(0,0,0,.5);
+}
+#screen {
+  position: relative; width: 390px; height: 854px; border-radius: 48px; overflow: hidden;
+  background: linear-gradient(180deg, var(--plate-top), var(--plate-bottom));
+}
+#screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: var(--grain); opacity: .8; }
+#status { position: absolute; left: 26px; right: 26px; top: 14px; display: flex; justify-content: space-between; font-size: 15px; color: #e9ecee; font-weight: 600; }
+#status i { display: inline-block; width: 16px; height: 10px; border-radius: 2px; background: #e9ecee; margin-left: 6px; opacity: .85; }
+
+.cap { position: absolute; border-radius: 50%; background: var(--well); transform: translate(-50%, -50%) scale(var(--sc, 1)); opacity: var(--op, 1); }
+.cap.pill { border-radius: 999px; }
+.cap::before { content: ""; position: absolute; inset: calc(2.5px + 1.6px * var(--p, 0)); border-radius: inherit;
+  background: radial-gradient(circle at 36% 28%, var(--lift), var(--base) 95%); }
+.cap::after { content: ""; position: absolute; inset: calc(2.5px + 1.6px * var(--p, 0)); border-radius: inherit; background: #000; opacity: calc(.22 * var(--p, 0)); }
+.cap svg { position: absolute; inset: 0; margin: auto; width: 38%; height: 38%; z-index: 2; stroke: var(--glyph); opacity: var(--gl, 1); }
+.cap .seam { position: absolute; left: 25%; right: 25%; top: 50%; height: 1px; background: var(--well); z-index: 2; }
+.cap .half { position: absolute; left: 0; right: 0; height: 50%; z-index: 2; }
+.cap .half svg { width: 34%; height: auto; aspect-ratio: 1; top: 0; bottom: 0; }
+.cap .half.up { top: 0; } .cap .half.dn { bottom: 0; }
+
+#ring { position: absolute; transform: translate(-50%, -50%) scale(var(--sc, 1)); border-radius: 50%; background: var(--well); opacity: var(--op, 1); }
+#ring .dish { position: absolute; inset: 3%; border-radius: 50%; background: radial-gradient(circle, #1f2427, var(--well)); }
+#ring .sector { position: absolute; inset: 0; border-radius: 50%; opacity: 0;
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 54.5%); mask: radial-gradient(circle, transparent 54%, #000 54.5%); }
+#ring .knob { position: absolute; left: 23%; top: 23%; width: 54%; height: 54%; border-radius: 50%; transform: scale(var(--kp, 1));
+  background: radial-gradient(circle at 36% 28%, var(--cap-lift), var(--cap) 85%);
+  box-shadow: 0 9px 18px rgba(0,0,0,.45), 0 3px 5px rgba(0,0,0,.35); }
+#ring .knob::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #000; opacity: var(--kd, 0); }
+#ring .led { position: absolute; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: rgba(217,220,222,.62); }
+#ring .led.lit { background: #fff; box-shadow: 0 0 12px 4px rgba(255,255,255,.55); }
+.finger { position: absolute; width: 58px; height: 58px; margin: -29px; border-radius: 50%; opacity: 0; pointer-events: none; z-index: 20;
+  background: rgba(255,255,255,.16); border: 2px solid rgba(255,255,255,.55); box-shadow: 0 0 24px rgba(255,255,255,.18); }
+
+#win { position: absolute; left: 14px; top: 51px; width: 299px; height: 51px; border-radius: 18px; background: var(--ink); overflow: hidden;
+  background-image: radial-gradient(rgba(255,255,255,.075) .6px, transparent .85px); background-size: 5px 5px;
+  display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 500; letter-spacing: .02em; }
+#win .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--online); }
+#win svg { width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+#reco { position: absolute; left: 323px; top: 51px; width: 52px; height: 52px; border-radius: 50%; background: var(--ink);
+  background-image: radial-gradient(rgba(255,255,255,.075) .6px, transparent .85px); background-size: 5px 5px; display: flex; align-items: center; justify-content: center; }
+#reco svg { width: 22px; height: 22px; stroke: var(--muted); fill: none; stroke-width: 1.8; opacity: .6; }
+#reco .pulse { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--amber); opacity: 0; }
+
+#menu { position: absolute; z-index: 10; left: 14px; top: 110px; width: 299px; border-radius: 18px; background: var(--ink); overflow: hidden; opacity: 0; transform-origin: top;
+  background-image: radial-gradient(rgba(255,255,255,.075) .6px, transparent .85px); background-size: 5px 5px; box-shadow: 0 16px 36px rgba(0,0,0,.5); }
+#menu .row { display: flex; align-items: center; justify-content: space-between; padding: 0 18px; height: 46px; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+#menu .row + .row { border-top: 1px solid var(--well); }
+#menu .row.muted { color: var(--muted); }
+#menu svg { width: 16px; height: 16px; stroke: var(--glyph); fill: none; stroke-width: 1.8; }
+
+/* ---------- keyboard sheet ---------- */
+#scrim { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 30; }
+#sheet { position: absolute; left: 16px; right: 16px; top: 335px; height: 178px; border-radius: 24px; background: var(--ink); z-index: 31; padding: 20px; opacity: 0;
+  background-image: radial-gradient(rgba(255,255,255,.075) .6px, transparent .85px); background-size: 5px 5px; }
+#sheet .lab { font-size: 11px; letter-spacing: .16em; color: var(--muted); font-weight: 600; }
+#sheet .field { margin-top: 14px; height: 50px; border-radius: 14px; background: var(--well); padding: 0 16px; display: flex; align-items: center; font-size: 17px; }
+#sheet .field .ph { color: var(--muted); }
+#sheet .caret { display: inline-block; width: 2px; height: 22px; background: var(--amber); margin-left: 1px; }
+#sheet .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+#sheet .foot span { color: var(--muted); font-size: 14px; font-weight: 500; padding: 0 8px; }
+#sheet .ok { position: relative; height: 40px; padding: 0 24px; display: flex; align-items: center; border-radius: 999px; background: var(--paper); color: #2a2e31; font-size: 14px; font-weight: 600; transform: scale(var(--sc, 1)); }
+#kb { position: absolute; left: 0; right: 0; bottom: 0; height: 316px; background: #1b2030; z-index: 32; padding: 10px 6px; display: flex; flex-direction: column; gap: 9px; }
+#kb .r { display: flex; gap: 5px; justify-content: center; flex: 1; }
+#kb .k { flex: 1; max-width: 36px; border-radius: 8px; background: #343a4d; display: flex; align-items: center; justify-content: center; font-size: 19px; color: #e8eaf0; }
+#kb .k.on { background: #6a7292; transform: translateY(-3px) scale(1.12); }
+#kb .sug { flex: .7; justify-content: space-around; align-items: center; color: #aab; font-size: 17px; }
+
+/* ---------- TV ---------- */
+#tv { position: absolute; left: 130px; top: 600px; width: 740px; height: 416px; border-radius: 18px; background: #090a0b; padding: 9px; opacity: 0;
+  box-shadow: 0 0 0 2px #1d2023, 0 40px 80px rgba(0,0,0,.6); }
+#tvScreen { position: relative; width: 722px; height: 398px; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(ellipse at 30% 20%, #1c2a3a, #0c121a 70%); }
+.layer { position: absolute; inset: 0; opacity: 0; }
+#tvSearch .pill { position: absolute; left: 36px; right: 36px; top: 34px; height: 54px; border-radius: 27px; background: rgba(255,255,255,.1); display: flex; align-items: center; padding: 0 22px; font-size: 24px; color: #fff; gap: 14px; }
+#tvSearch .pill svg { width: 24px; height: 24px; stroke: #cfd6dc; fill: none; stroke-width: 2; }
+#tvSearch .pill .ph { color: rgba(255,255,255,.45); }
+#tvSearch .tcaret { display: inline-block; width: 2px; height: 28px; background: #fff; margin-left: 2px; }
+#tvSearch .sg { position: absolute; left: 44px; top: 120px; display: flex; flex-direction: column; gap: 12px; font-size: 21px; color: #cdd5dc; }
+#tvSearch .sg div { opacity: 0; display: flex; gap: 12px; align-items: center; }
+#tvSearch .sg div.first.hit { color: #fff; font-weight: 600; }
+#tvSearch .cards { position: absolute; right: 36px; top: 120px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 300px; }
+#tvSearch .card { height: 90px; border-radius: 10px; background: linear-gradient(135deg, #22384d, #14202c); opacity: 0; }
+#tvPlay { background: radial-gradient(ellipse at 60% 40%, #1d3550, #0a0f16 75%); }
+#tvPlay .stars { position: absolute; inset: 0; background-image: radial-gradient(#fff 1px, transparent 1.4px); background-size: 61px 47px; opacity: .22; }
+#tvPlay .stars.b { background-size: 97px 83px; background-position: 30px 20px; opacity: .15; }
+#tvPlay .glyph { position: absolute; left: 50%; top: 50%; width: 110px; height: 110px; margin: -55px; border-radius: 50%; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; opacity: 0; }
+#tvPlay .glyph svg { width: 54px; height: 54px; stroke: #fff; fill: #fff; stroke-width: 1.4; }
+#hud { position: absolute; right: 28px; top: 28px; height: 48px; padding: 0 20px; border-radius: 24px; background: rgba(0,0,0,.6); display: flex; align-items: center; gap: 14px; opacity: 0; }
+#hud svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 1.8; }
+#hud .track { width: 150px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); overflow: hidden; }
+#hud .fill { height: 100%; background: #fff; width: 40%; }
