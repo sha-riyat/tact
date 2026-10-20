@@ -15,7 +15,7 @@ class PairingClient(private val host: String) {
         val s = TlsIdentity.connect(host, PORT)
         socket = s
         try {
-            exchange(s, PairingMessages.request("atvremote", "Remote CTRL"))
+            exchange(s, PairingMessages.request("atvremote", "Tact"))
             exchange(s, PairingMessages.option())
             exchange(s, PairingMessages.configuration())
         } catch (e: Exception) {

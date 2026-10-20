@@ -71,8 +71,8 @@ object RemoteMessages {
     fun configure(): ByteArray = ProtoWriter().message(1) {
         int(1, FEATURES)
         message(2) {
-            string(1, "Remote CTRL")
-            string(2, "RemoteCtrl")
+            string(1, "Tact")
+            string(2, "Tact")
             int(3, 1)
             string(4, "1")
             string(5, "dev.remotectrl")
