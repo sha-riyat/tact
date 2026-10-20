@@ -47,6 +47,10 @@ node demo/render.mjs video demo/tact-demo.mp4
 python -I demo/sound.py
 ```
 
+## Licence
+
+MIT, voir [LICENSE](LICENSE).
+
 ## Remarques
 
 Tact est un projet indépendant, sans lien avec Google. « Android TV » est une marque de Google LLC.
