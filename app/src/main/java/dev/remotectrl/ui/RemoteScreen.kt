@@ -1,6 +1,7 @@
 package dev.remotectrl.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,12 +43,20 @@ fun RemoteScreen(
 ) {
     var showKeyboard by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        DeviceBar(tv, state, saved, found, onOpen, onDevices, onReconnect, onRepair)
-        RemoteKeys(Modifier.weight(1f), tv != null && state == RemoteState.Ready, onKey) { showKeyboard = true }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            DeviceBar(tv, state, saved, found, onOpen, onDevices, onReconnect, onRepair)
+            RemoteKeys(Modifier.weight(1f), tv != null && state == RemoteState.Ready, onKey) { showKeyboard = true }
+        }
+        if (showKeyboard) {
+            KeyboardSheet(
+                onInsert = onType,
+                onDelete = { count -> repeat(count) { onKey(KeyCodes.DELETE) } },
+                onSubmit = { onKey(KeyCodes.ENTER) },
+                onDismiss = { showKeyboard = false },
+            )
+        }
     }
-
-    if (showKeyboard) KeyboardDialog(onSend = onType, onKey = onKey, onDismiss = { showKeyboard = false })
 }
 
 @Composable
