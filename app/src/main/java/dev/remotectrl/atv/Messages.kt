@@ -65,6 +65,9 @@ object RemoteMessages {
         data object SetActive : Incoming
         data class Ping(val value: Int) : Incoming
         data class Error(val code: Int) : Incoming
+
+        /** The TV has a text field in focus and tells us the counters its next edit must carry (null: not given). */
+        data class TextField(val imeCounter: Int?, val fieldCounter: Int?) : Incoming
         data object Other : Incoming
     }
 
@@ -91,6 +94,26 @@ object RemoteMessages {
 
     fun appLink(url: String): ByteArray = ProtoWriter().message(90) { string(1, url) }.toByteArray()
 
+    /** Sets the content of the focused text field; the counters are the ones the TV last sent. */
+    fun text(imeCounter: Int, fieldCounter: Int, text: String): ByteArray = ProtoWriter().message(21) {
+        int(1, imeCounter)
+        int(2, fieldCounter)
+        message(3) {
+            int(1, 1)
+            message(2) {
+                int(1, text.length - 1)
+                int(2, text.length - 1)
+                string(3, text)
+            }
+        }
+    }.toByteArray()
+
+    private fun fieldCounterOf(message: ProtoField): Int? {
+        val inner = ProtoReader.parse(message.bytes ?: return null)
+        val status = inner.firstOrNull { it.number == 2 }?.bytes ?: return null
+        return ProtoReader.parse(status).varint(1)?.toInt()
+    }
+
     fun parse(frame: ByteArray): Incoming {
         val fields: List<ProtoField> = ProtoReader.parse(frame)
         return when {
@@ -101,6 +124,13 @@ object RemoteMessages {
                 Incoming.Ping((inner.varint(1) ?: 0L).toInt())
             }
             fields.has(3) -> Incoming.Error(0)
+            fields.has(21) -> {
+                val inner = ProtoReader.parse(fields.first { it.number == 21 }.bytes ?: ByteArray(0))
+                Incoming.TextField(inner.varint(1)?.toInt(), inner.varint(2)?.toInt())
+            }
+            // Key inject (20) and show request (22) carry the field counter inside their text field status (2).
+            fields.has(20) -> Incoming.TextField(null, fieldCounterOf(fields.first { it.number == 20 }))
+            fields.has(22) -> Incoming.TextField(null, fieldCounterOf(fields.first { it.number == 22 }))
             else -> Incoming.Other
         }
     }

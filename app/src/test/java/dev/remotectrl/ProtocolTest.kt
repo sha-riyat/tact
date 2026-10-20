@@ -4,6 +4,8 @@ import dev.remotectrl.atv.KeyCodes
 import dev.remotectrl.atv.PairingMessages
 import dev.remotectrl.atv.PairingSecret
 import dev.remotectrl.atv.RemoteMessages
+import dev.remotectrl.atv.TextEdit
+import dev.remotectrl.atv.diffText
 import dev.remotectrl.proto.Frames
 import dev.remotectrl.proto.ProtoReader
 import dev.remotectrl.proto.ProtoWriter
@@ -50,6 +52,42 @@ class ProtocolTest {
         assertEquals(2L, fields.varint(1))
         assertEquals(PairingMessages.STATUS_OK, fields.varint(2))
         assertEquals("atvremote", ProtoReader.parse(fields.bytes(10)!!).string(1))
+    }
+
+    @Test
+    fun textMessageCarriesCountersAndValue() {
+        val top = ProtoReader.parse(RemoteMessages.text(3, 5, "hello"))
+        val edit = ProtoReader.parse(top.bytes(21)!!)
+        assertEquals(3L, edit.varint(1))
+        assertEquals(5L, edit.varint(2))
+        val info = ProtoReader.parse(edit.first { it.number == 3 }.bytes!!)
+        val value = ProtoReader.parse(info.bytes(2)!!)
+        assertEquals("hello", value.string(3))
+        assertEquals(4L, value.varint(1))
+    }
+
+    @Test
+    fun textFieldRequestCarriesTheTvCounters() {
+        val frame = ProtoWriter().message(21) {
+            int(1, 7)
+            int(2, 9)
+        }.toByteArray()
+        assertEquals(RemoteMessages.Incoming.TextField(7, 9), RemoteMessages.parse(frame))
+    }
+
+    @Test
+    fun showRequestCarriesTheFieldCounter() {
+        val frame = ProtoWriter().message(22) { message(2) { int(1, 4) } }.toByteArray()
+        assertEquals(RemoteMessages.Incoming.TextField(null, 4), RemoteMessages.parse(frame))
+    }
+
+    @Test
+    fun typingOnlySendsWhatChanged() {
+        assertEquals(TextEdit(0, "a"), diffText("", "a"))
+        assertEquals(TextEdit(0, "b"), diffText("a", "ab"))
+        assertEquals(TextEdit(1, ""), diffText("ab", "a"))
+        assertEquals(TextEdit(2, "p"), diffText("hello", "help"))
+        assertEquals(TextEdit(0, ""), diffText("same", "same"))
     }
 
     @Test

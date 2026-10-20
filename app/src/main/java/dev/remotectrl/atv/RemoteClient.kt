@@ -4,6 +4,7 @@ import dev.remotectrl.proto.Frames
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -26,15 +27,25 @@ class RemoteClient(private val host: String, private val scope: CoroutineScope) 
     private val writeLock = Any()
     private var socket: SSLSocket? = null
     private var job: Job? = null
+    private var sender: Job? = null
+    private val outbox = Channel<ByteArray>(Channel.UNLIMITED)
+
+    @Volatile
+    private var imeCounter = 0
+
+    @Volatile
+    private var fieldCounter = 0
 
     fun connect() {
         if (_state.value is RemoteState.Connecting || _state.value is RemoteState.Ready) return
         _state.value = RemoteState.Connecting
         job = scope.launch(Dispatchers.IO) { run() }
+        sender = scope.launch(Dispatchers.IO) { drainOutbox() }
     }
 
     fun close() {
         job?.cancel()
+        sender?.cancel()
         runCatching { socket?.close() }
         socket = null
         _state.value = RemoteState.Idle
@@ -44,13 +55,20 @@ class RemoteClient(private val host: String, private val scope: CoroutineScope) 
 
     fun launchApp(url: String) = send(RemoteMessages.appLink(url))
 
+    /** Inserts [text] at the cursor of the field the TV has focused, using the counters it last sent (0 until then). */
     fun type(text: String) {
-        text.forEach { c -> KeyCodes.forChar(c)?.let { key(it) } }
+        if (text.isEmpty()) return
+        send(RemoteMessages.text(imeCounter, fieldCounter, text))
     }
 
+    /** Frames leave in the order they were queued, which matters when typing letter by letter. */
     private fun send(frame: ByteArray) {
-        scope.launch(Dispatchers.IO) {
-            val s = socket ?: return@launch
+        outbox.trySend(frame)
+    }
+
+    private suspend fun drainOutbox() {
+        for (frame in outbox) {
+            val s = socket ?: continue
             try {
                 write(s, frame)
             } catch (e: Exception) {
@@ -74,6 +92,10 @@ class RemoteClient(private val host: String, private val scope: CoroutineScope) 
                         _state.value = RemoteState.Ready
                     }
                     is RemoteMessages.Incoming.Ping -> write(s, RemoteMessages.pingResponse(msg.value))
+                    is RemoteMessages.Incoming.TextField -> {
+                        msg.imeCounter?.let { imeCounter = it }
+                        msg.fieldCounter?.let { fieldCounter = it }
+                    }
                     is RemoteMessages.Incoming.Error -> throw PairingException("Erreur du téléviseur")
                     RemoteMessages.Incoming.Other -> Unit
                 }
