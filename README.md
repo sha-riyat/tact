@@ -38,15 +38,6 @@ Tact implémente le protocole Android TV Remote v2 sans aucune bibliothèque ext
 - Le codec protobuf et le certificat auto-signé sont écrits à la main (`proto/Proto.kt`, `atv/SelfSignedCert.kt`).
 - L'interface est en Jetpack Compose, avec des icônes dessinées en code.
 
-## La démo
-
-Le film vient de `demo/` : une page HTML animée en fonction du temps, filmée image par image avec Chrome puis encodée avec ffmpeg. La bande-son est synthétisée par `sound.py` (numpy), sans échantillon.
-
-```bash
-node demo/render.mjs video demo/tact-demo.mp4
-python -I demo/sound.py
-```
-
 ## Licence
 
 MIT, voir [LICENSE](LICENSE).
