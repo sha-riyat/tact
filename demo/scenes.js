@@ -12,8 +12,10 @@ const lerp = (a, b, x) => a + (b - a) * x;
 const bump = (t, t0, dur, up = 0.1, down = 0.15) =>
   t < t0 ? 0 : t < t0 + up ? (t - t0) / up : t < t0 + dur - down ? 1 : clamp(1 - (t - (t0 + dur - down)) / down);
 
-// ---- camera: [time, x, y, scale, rotateY] -------------------------------------------------
-const CAM = [
+// ---- camera: [time, x, y, scale, rotateY], one table per format ---------------------------------
+const VERTICAL = document.body.classList.contains('v');
+const W = VERTICAL ? 1080 : 1920;
+const CAM_H = [
   [0, 1000, 60, 0.92, -32], [4.6, 1000, 60, 0.92, -32], [6.2, 0, 0, 1, -9], [9.4, 0, 0, 1, -9],
   [10.8, 0, 182, 1.55, -4], [15.2, 0, 182, 1.55, -4],
   [16.9, 37, 229, 1.25, -6], [21.8, 37, 229, 1.25, -6],
@@ -22,6 +24,17 @@ const CAM = [
   [39.2, 45, 316, 1.5, -5], [43.8, 45, 316, 1.5, -5],
   [45.8, 1000, 0, 0.95, -30], [TOTAL, 1000, 0, 0.95, -30],
 ];
+// Portrait: copy on top, the TV above the phone while typing and while using the keys.
+const CAM_V = [
+  [0, 700, 100, 0.95, -32], [4.6, 700, 100, 0.95, -32], [6.2, 0, 0, 1.25, -9], [9.4, 0, 0, 1.25, -9],
+  [10.8, 0, 145, 1.7, -4], [15.2, 0, 145, 1.7, -4],
+  [16.9, 45, 157, 1.5, -6], [21.8, 45, 157, 1.5, -6],
+  [23.2, 0, 299, 1.05, -6], [31.6, 0, 299, 1.05, -6],
+  [33.0, 0, 299, 1.05, -9], [37.8, 0, 299, 1.05, -9],
+  [39.2, 51, 267, 1.7, -5], [43.8, 51, 267, 1.7, -5],
+  [45.8, 900, 0, 1, -30], [TOTAL, 900, 0, 1, -30],
+];
+const CAM = VERTICAL ? CAM_V : CAM_H;
 function camera(t) {
   for (let i = 1; i < CAM.length; i++) {
     if (t <= CAM[i][0]) {
@@ -69,7 +82,7 @@ function seek(t) {
   tv(t);
 
   el.brand.style.opacity = prog(t, 4.8, 5.6) * (1 - prog(t, 43.8, 44.4));
-  el.bar.style.width = `${(t / TOTAL) * 1920}px`;
+  el.bar.style.width = `${(t / TOTAL) * W}px`;
   el.bar.style.opacity = prog(t, 4.4, 5) * (1 - prog(t, 44, 44.6));
 }
 

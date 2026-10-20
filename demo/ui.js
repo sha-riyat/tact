@@ -1,4 +1,8 @@
 // Builds the phone, the TV and the copy blocks once; scenes.js then drives them frame by frame.
+if (new URLSearchParams(location.search).has('v')) {
+  document.documentElement.classList.add('v');
+  document.body.classList.add('v');
+}
 const $ = (id) => document.getElementById(id);
 const make = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
 

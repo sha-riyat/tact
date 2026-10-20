@@ -134,3 +134,17 @@ body { font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; color: var(
 #hud svg { width: 24px; height: 24px; stroke: #fff; fill: none; stroke-width: 1.8; }
 #hud .track { width: 150px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); overflow: hidden; }
 #hud .fill { height: 100%; background: #fff; width: 40%; }
+
+/* ---------- portrait (1080 x 1920) ---------- */
+html.v, body.v { width: 1080px; height: 1920px; }
+.v #stage { background: radial-gradient(ellipse 95% 55% at 50% 62%, #2a3034 0%, #15181a 55%, #0b0c0d 100%); }
+.v #copy { left: 80px; top: 150px; width: 920px; }
+.v .eyebrow { font-size: 26px; }
+.v .h1 { font-size: 80px; }
+.v .sub { font-size: 34px; max-width: 860px; }
+.v #brand { left: 80px; top: 60px; }
+.v #phoneWrap { left: 335px; top: 693px; }
+.v #tv { left: 170px; top: 520px; }
+.v .title { font-size: 170px; }
+.v .tag { font-size: 38px; padding: 0 60px; }
+.v .chips { flex-wrap: wrap; justify-content: center; max-width: 900px; }

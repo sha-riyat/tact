@@ -1,5 +1,5 @@
 // Renders index.html to an MP4: headless Chrome draws each frame (seek(t)), ffmpeg encodes them.
-// Usage: node render.mjs preview 2,6,12      -> preview-<t>.png next to this file
+// Usage: node render.mjs preview 2,6,12      -> preview-<t>.png next to this file (add --vertical for 1080x1920)
 //        node render.mjs video [out.mp4]     -> full film at 30 fps
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
@@ -10,11 +10,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const CHROME = process.env.CHROME ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const PORT = 9333, FPS = 30, DURATION = 50;
-const [mode = 'preview', arg] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const vertical = args.includes('--vertical');
+const [mode = 'preview', arg] = args.filter((a) => !a.startsWith('--'));
+const [WIDTH, HEIGHT] = vertical ? [1080, 1920] : [1920, 1080];
 
 const chrome = spawn(CHROME, [
   '--headless=new', `--remote-debugging-port=${PORT}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), 'tact-chrome-'))}`,
-  '--window-size=1920,1080', '--hide-scrollbars', '--force-device-scale-factor=1', '--no-first-run', 'about:blank',
+  `--window-size=${WIDTH},${HEIGHT}`, '--hide-scrollbars', '--force-device-scale-factor=1', '--no-first-run', 'about:blank',
 ], { stdio: 'ignore' });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -48,9 +51,9 @@ const send = (method, params = {}) => new Promise((resolve, reject) => {
 const once = (method) => new Promise((resolve) => waiters.push({ method, resolve }));
 
 await send('Page.enable');
-await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
+await send('Emulation.setDeviceMetricsOverride', { width: WIDTH, height: HEIGHT, deviceScaleFactor: 1, mobile: false });
 const loaded = once('Page.loadEventFired');
-await send('Page.navigate', { url: pathToFileURL(join(here, 'index.html')).href });
+await send('Page.navigate', { url: pathToFileURL(join(here, 'index.html')).href + (vertical ? '?v=1' : '') });
 await loaded;
 await sleep(500);
 
@@ -65,7 +68,7 @@ const frame = async (t, format = 'png') => {
 
 try {
   if (mode === 'preview') {
-    for (const t of (arg ?? '2').split(',').map(Number)) writeFileSync(join(here, `preview-${t}.png`), await frame(t));
+    for (const t of (arg ?? '2').split(',').map(Number)) writeFileSync(join(here, `preview-${vertical ? 'v-' : ''}${t}.png`), await frame(t));
   } else {
     const out = arg ?? join(here, 'tact-demo.mp4');
     const ffmpeg = spawn('ffmpeg', [
