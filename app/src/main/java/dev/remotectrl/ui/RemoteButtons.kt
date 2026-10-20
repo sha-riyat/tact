@@ -5,9 +5,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -32,10 +31,6 @@ import kotlinx.coroutines.launch
 
 private const val HOLD_DELAY_MS = 450L
 private const val REPEAT_MS = 140L
-
-/** A key face: one flat block of colour, lighter while pressed. */
-fun Modifier.keyFace(shape: Shape, pressed: Boolean = false): Modifier =
-    background(if (pressed) Palette.KeyPressed else Palette.Key, shape)
 
 /** Calls [tick] on press, keeps calling it while the finger stays down if [repeat], and reports the pressed state. */
 fun Modifier.pressKey(enabled: Boolean, repeat: Boolean, onPressed: (Boolean) -> Unit, tick: () -> Unit): Modifier = composed {
@@ -62,24 +57,24 @@ fun Modifier.pressKey(enabled: Boolean, repeat: Boolean, onPressed: (Boolean) ->
     }
 }
 
-private fun markColor(enabled: Boolean): Color = if (enabled) Palette.Mark else Palette.Mark.copy(alpha = 0.3f)
+private fun markColor(tone: Tone, enabled: Boolean): Color = if (enabled) tone.glyph else tone.glyph.copy(alpha = 0.35f)
 
 @Composable
-fun KeyButton(glyph: Glyph, label: String, enabled: Boolean, size: Dp, onKey: () -> Unit) {
+fun KeyButton(glyph: Glyph, label: String, enabled: Boolean, size: Dp, tone: Tone = Tone.Dark, onKey: () -> Unit) {
     var pressed by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .size(size)
-            .keyFace(CircleShape, pressed)
+            .cap(CircleShape, tone, pressed)
             .semantics { contentDescription = label; role = Role.Button }
             .pressKey(enabled, repeat = false, onPressed = { pressed = it }, tick = onKey),
         contentAlignment = Alignment.Center,
     ) {
-        GlyphIcon(glyph, markColor(enabled), Modifier.size(size * 0.4f))
+        GlyphIcon(glyph, markColor(tone, enabled), Modifier.size(size * 0.38f))
     }
 }
 
-/** Tall pill with + above and − below; hold either half to repeat. */
+/** Tall pill split by a hairline seam: + above, − below; hold either half to repeat. */
 @Composable
 fun VolumeRocker(enabled: Boolean, width: Dp, height: Dp, onUp: () -> Unit, onDown: () -> Unit) {
     var upPressed by remember { mutableStateOf(false) }
@@ -87,9 +82,11 @@ fun VolumeRocker(enabled: Boolean, width: Dp, height: Dp, onUp: () -> Unit, onDo
     Column(
         modifier = Modifier
             .size(width, height)
-            .keyFace(RoundedCornerShape(50), upPressed || downPressed),
+            .cap(Pill, Tone.Dark, upPressed || downPressed),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         RockerHalf(Glyph.PLUS, "Volume plus", enabled, width, onUp) { upPressed = it }
+        Box(Modifier.fillMaxWidth(0.5f).height(1.dp).background(Palette.Well))
         RockerHalf(Glyph.MINUS, "Volume moins", enabled, width, onDown) { downPressed = it }
     }
 }
@@ -111,6 +108,6 @@ private fun androidx.compose.foundation.layout.ColumnScope.RockerHalf(
             .pressKey(enabled, repeat = true, onPressed = onPressed, tick = onTick),
         contentAlignment = Alignment.Center,
     ) {
-        GlyphIcon(glyph, markColor(enabled), Modifier.size(width * 0.4f))
+        GlyphIcon(glyph, markColor(Tone.Dark, enabled), Modifier.size(width * 0.38f))
     }
 }

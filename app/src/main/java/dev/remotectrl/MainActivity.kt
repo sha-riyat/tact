@@ -18,16 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.remotectrl.ui.DevicesScreen
 import dev.remotectrl.ui.PairingScreen
-import dev.remotectrl.ui.Palette
 import dev.remotectrl.ui.RemoteScreen
 import dev.remotectrl.ui.RemoteTheme
+import dev.remotectrl.ui.plate
 
 class MainActivity : ComponentActivity() {
     private val vm: AppViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // The UI is always black, so the system bars always get light icons.
+        // The UI is always dark, so the system bars always get light icons.
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -48,7 +48,7 @@ private fun App(vm: AppViewModel) {
     }
 
     RemoteTheme {
-        Surface(modifier = Modifier.fillMaxSize().safeDrawingPadding(), color = Palette.Black) {
+        Surface(modifier = Modifier.fillMaxSize().plate().safeDrawingPadding(), color = androidx.compose.ui.graphics.Color.Transparent) {
             when (val screen = ui.screen) {
                 Screen.Devices -> {
                     BackHandler(onBack = vm::back)

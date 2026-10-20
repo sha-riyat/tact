@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 
-enum class Glyph { POWER, KEYBOARD, BACK, HOME, PLAY_PAUSE, MUTE, PLUS, MINUS, CHEVRON_DOWN, CHECK }
+enum class Glyph { POWER, KEYBOARD, BACK, HOME, PLAY_PAUSE, MUTE, PLUS, MINUS, CHEVRON_DOWN, CHECK, REFRESH }
 
 /** Line icons drawn on a 24-unit grid, so the remote needs no icon library. */
 @Composable
@@ -54,6 +54,10 @@ fun GlyphIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier.size(24.d
             Glyph.MINUS -> g.line(4f, 12f, 20f, 12f)
             Glyph.CHEVRON_DOWN -> g.poly(5f to 9f, 12f to 16f, 19f to 9f)
             Glyph.CHECK -> g.poly(4f to 12.5f, 9.5f to 18f, 20f to 6.5f)
+            Glyph.REFRESH -> {
+                g.arc(12f, 12f, 7.5f, 0f, 300f)
+                g.poly(12.4f to 7.3f, 17.5f to 6.5f, 15.6f to 1.7f)
+            }
         }
     }
 }
@@ -61,12 +65,12 @@ fun GlyphIcon(glyph: Glyph, tint: Color, modifier: Modifier = Modifier.size(24.d
 /** Helpers that take coordinates in the 24-unit grid and scale them to the canvas. */
 private class Grid(private val scope: DrawScope, private val tint: Color) {
     private val s = scope.size.minDimension / 24f
-    private val stroke = Stroke(width = 2.2f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)
+    private val stroke = Stroke(width = 1.8f * s, cap = StrokeCap.Round, join = StrokeJoin.Round)
 
     private fun p(x: Float, y: Float) = Offset(x * s, y * s)
 
     fun line(x1: Float, y1: Float, x2: Float, y2: Float) =
-        scope.drawLine(tint, p(x1, y1), p(x2, y2), strokeWidth = 2.2f * s, cap = StrokeCap.Round)
+        scope.drawLine(tint, p(x1, y1), p(x2, y2), strokeWidth = 1.8f * s, cap = StrokeCap.Round)
 
     fun poly(vararg pts: Pair<Float, Float>, close: Boolean = false) {
         val path = Path().apply {

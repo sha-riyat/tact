@@ -61,8 +61,8 @@ private fun RemoteKeys(modifier: Modifier, ready: Boolean, onKey: (Int) -> Unit,
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(Modifier.width((ROW_WIDTH * s).dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                KeyButton(Glyph.POWER, "Marche/Arrêt", ready, (SMALL * s).dp) { onKey(KeyCodes.POWER) }
-                KeyButton(Glyph.KEYBOARD, "Clavier", ready, (SMALL * s).dp, onKeyboard)
+                KeyButton(Glyph.POWER, "Marche/Arrêt", ready, (SMALL * s).dp, Tone.Amber) { onKey(KeyCodes.POWER) }
+                KeyButton(Glyph.KEYBOARD, "Clavier", ready, (SMALL * s).dp, onKey = onKeyboard)
             }
 
             DPadRing(ready, (DESIGN_WIDTH * s).dp, onKey)
@@ -74,7 +74,7 @@ private fun RemoteKeys(modifier: Modifier, ready: Boolean, onKey: (Int) -> Unit,
                     KeyButton(Glyph.MUTE, "Muet", ready, (BIG * s).dp) { onKey(KeyCodes.MUTE) }
                 }
                 Column(verticalArrangement = Arrangement.spacedBy((30f * s).dp)) {
-                    KeyButton(Glyph.HOME, "Accueil", ready, (BIG * s).dp) { onKey(KeyCodes.HOME) }
+                    KeyButton(Glyph.HOME, "Accueil", ready, (BIG * s).dp, Tone.Paper) { onKey(KeyCodes.HOME) }
                     VolumeRocker(
                         ready, (BIG * s).dp, (218f * s).dp,
                         onUp = { onKey(KeyCodes.VOLUME_UP) },

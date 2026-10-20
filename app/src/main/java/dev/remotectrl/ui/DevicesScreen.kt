@@ -45,9 +45,9 @@ fun DevicesScreen(
         item {
             Text(
                 "Choisis un téléviseur",
-                color = Palette.Mark,
+                color = Palette.Glyph,
                 fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
             )
@@ -74,15 +74,15 @@ private fun TvRow(tv: Tv, hint: String?, onOpen: (Tv) -> Unit, onForget: ((Tv) -
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .cap(shape)
             .clip(shape)
             .clickable { onOpen(tv) }
-            .keyFace(shape)
             .padding(start = 20.dp, end = 8.dp, top = 14.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(tv.name, color = Palette.Mark, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text(tv.name, color = Palette.Glyph, fontSize = 17.sp, fontWeight = FontWeight.Medium)
             Text(tv.host, color = Palette.Muted, fontSize = 13.sp)
         }
         if (hint != null) Text(hint, color = Palette.Muted, fontSize = 14.sp, modifier = Modifier.padding(end = 12.dp))

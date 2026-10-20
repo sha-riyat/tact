@@ -3,6 +3,7 @@ package dev.remotectrl.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,11 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -28,13 +25,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private const val INNER_RATIO = 0.573f
-private const val DOT_REACH = 0.885f
-private const val DOT_RATIO = 0.032f
+private const val KNOB_RATIO = 0.54f
+private const val DOT_REACH = 0.79f
+private const val DOT_RATIO = 0.026f
 private const val HOLD_DELAY_MS = 450L
 private const val REPEAT_MS = 140L
 
-/** The scroll wheel: tap a quarter for an arrow, tap the centre for OK, hold to repeat. */
+/** The wheel: a knob in a round recess. Tap a quarter for an arrow (its LED lights), the knob for OK, hold to repeat. */
 @Composable
 fun DPadRing(enabled: Boolean, diameter: Dp, onKey: (Int) -> Unit) {
     val scope = rememberCoroutineScope()
@@ -44,6 +41,7 @@ fun DPadRing(enabled: Boolean, diameter: Dp, onKey: (Int) -> Unit) {
         modifier = Modifier
             .size(diameter)
             .semantics { contentDescription = "Croix directionnelle" }
+            .grain(CircleShape)
             .pointerInput(enabled) {
                 if (!enabled) return@pointerInput
                 detectTapGestures(onPress = { pos ->
@@ -64,9 +62,9 @@ fun DPadRing(enabled: Boolean, diameter: Dp, onKey: (Int) -> Unit) {
             },
     ) {
         val r = size.minDimension / 2
-        drawOuter(r, pressed)
-        drawInner(r * INNER_RATIO, pressed == KeyCodes.CENTER)
-        drawDots(r, if (enabled) 0.8f else 0.3f)
+        drawWell(r, pressed)
+        drawKnob(r * KNOB_RATIO, pressed == KeyCodes.CENTER)
+        drawLeds(r, pressed, enabled)
     }
 }
 
@@ -75,7 +73,7 @@ private fun keyAt(pos: Offset, w: Float, h: Float): Int {
     val dy = pos.y - h / 2
     val r = minOf(w, h) / 2
     return when {
-        dx * dx + dy * dy < (r * INNER_RATIO) * (r * INNER_RATIO) -> KeyCodes.CENTER
+        dx * dx + dy * dy < (r * KNOB_RATIO) * (r * KNOB_RATIO) -> KeyCodes.CENTER
         abs(dx) >= abs(dy) -> if (dx > 0) KeyCodes.RIGHT else KeyCodes.LEFT
         else -> if (dy > 0) KeyCodes.DOWN else KeyCodes.UP
     }
@@ -90,22 +88,42 @@ private fun sectorStart(key: Int?): Float? = when (key) {
     else -> null
 }
 
-/** Flat ring; the pressed quarter is lit. */
-private fun DrawScope.drawOuter(r: Float, pressed: Int?) {
-    drawCircle(Palette.Key, r)
+/** The recess: dark at the rim, a little lighter in the dish, and a darker quarter under the finger. */
+private fun DrawScope.drawWell(r: Float, pressed: Int?) {
+    drawCircle(Palette.Well, r)
+    drawCircle(
+        Brush.radialGradient(listOf(Color(0xFF1F2427), Palette.Well), center, r),
+        r * 0.97f,
+    )
     sectorStart(pressed)?.let { start ->
-        drawArc(Palette.KeyHeld, start, 90f, true, Offset.Zero, Size(2 * r, 2 * r))
+        drawArc(Color.Black.copy(alpha = 0.22f), start, 90f, true, Offset.Zero, Size(2 * r, 2 * r))
     }
 }
 
-/** Flat centre button, same colour as a pressed key so it reads as raised from the ring. */
-private fun DrawScope.drawInner(r: Float, pressed: Boolean) {
-    drawCircle(if (pressed) Palette.KeyHeld else Palette.KeyPressed, r)
+/** The knob: a matte cap with a soft shadow built from a few faint discs, sinking slightly when pressed. */
+private fun DrawScope.drawKnob(full: Float, pressed: Boolean) {
+    val r = if (pressed) full * 0.975f else full
+    val drop = r * 0.1f
+    drawCircle(Color.Black.copy(alpha = 0.10f), r * 1.14f, center.copy(y = center.y + drop))
+    drawCircle(Color.Black.copy(alpha = 0.16f), r * 1.07f, center.copy(y = center.y + drop * 0.7f))
+    drawCircle(
+        Brush.radialGradient(
+            listOf(Palette.CapLift, Palette.Cap),
+            Offset(center.x - r * 0.25f, center.y - r * 0.35f),
+            r * 1.5f,
+        ),
+        r,
+    )
+    if (pressed) drawCircle(Color.Black.copy(alpha = 0.2f), r)
 }
 
-private fun DrawScope.drawDots(r: Float, alpha: Float) {
-    val dot = Color(0xFFC4C4C4).copy(alpha = alpha)
-    listOf(0f to -1f, 0f to 1f, -1f to 0f, 1f to 0f).forEach { (dx, dy) ->
-        drawCircle(dot, r * DOT_RATIO, Offset(center.x + dx * r * DOT_REACH, center.y + dy * r * DOT_REACH))
+/** Four tiny LEDs beside the knob; the one for the pressed direction glows. */
+private fun DrawScope.drawLeds(r: Float, pressed: Int?, enabled: Boolean) {
+    val leds = listOf(KeyCodes.UP to (0f to -1f), KeyCodes.DOWN to (0f to 1f), KeyCodes.LEFT to (-1f to 0f), KeyCodes.RIGHT to (1f to 0f))
+    for ((key, dir) in leds) {
+        val at = Offset(center.x + dir.first * r * DOT_REACH, center.y + dir.second * r * DOT_REACH)
+        val lit = key == pressed
+        if (lit) drawCircle(Palette.Led.copy(alpha = 0.22f), r * DOT_RATIO * 3.2f, at)
+        drawCircle(if (lit) Palette.Led else Palette.Glyph.copy(alpha = if (enabled) 0.6f else 0.25f), r * DOT_RATIO, at)
     }
 }
